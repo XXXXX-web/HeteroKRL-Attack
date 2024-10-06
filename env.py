@@ -141,9 +141,9 @@ class NodeAttackEnv(object):
         self.binary_rewards = None
         self.modified_graph_info = ModifiedGraph()
         self.alternative_modified_list = []
-        self.list_action_space = {target_node: deepcopy(self.list_action_space_original[self.target_node])} # 重置action space
-        self.list_acc_of_all = [] # 用于保存所有节点的准确率 我记得这变量也没什么用
-        self.negative_rewards = -1/StaticGraph.homoGraph.degree(self.target_node) # 计算负的rewards是多少 -1/degree
+        self.list_action_space = {target_node: deepcopy(self.list_action_space_original[self.target_node])} 
+        self.list_acc_of_all = [] 
+        self.negative_rewards = -1/StaticGraph.homoGraph.degree(self.target_node) 
 
     def update_action_space(self, target_node,action):
         self.list_action_space[target_node].remove(action)
