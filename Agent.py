@@ -74,7 +74,6 @@ class Agent(object):
         self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[50000], gamma=0.1, verbose=True)
 
     def make_actions(self, cur_state, is_evaluation=False):
-        # 选择动作
         state = cur_state[0]
         t = cur_state[1]
         chosen_type = cur_state[2]
@@ -111,7 +110,7 @@ class Agent(object):
             else:
                 selected_idx = self.idx_eval[i]
             self.env.setup(selected_idx)
-            self.net.update_list_action_space(self.env.list_action_space)  # 初始化动作空间
+            self.net.update_list_action_space(self.env.list_action_space) 
             action_choice = []
             for t in range(self.num_mod * 2):
                 cur_state = self.env.getStateRef()
@@ -126,7 +125,7 @@ class Agent(object):
                         break
                 else:
                     continue
-            logits_history.append(self.env.evaluation_logits) # 这里的logist 是victim model的结果
+            logits_history.append(self.env.evaluation_logits)
             labels_history.append(self.env.evaluation_labels)
             action_list[selected_idx] = action_choice
 
@@ -165,7 +164,7 @@ class Agent(object):
             self.device)
         self.optimizer.zero_grad()
         loss.backward()
-        self.optimizer.step()  #
+        self.optimizer.step()  
 
     def test_on_policy_agent(self):
         model_name = 'AgentModel/model_'+ self.dataset +'_budget_'+ str(self.num_mod) +'.pth'
