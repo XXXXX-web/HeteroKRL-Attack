@@ -1,12 +1,3 @@
-#!/usr/bin/env python 
-# -*- coding: utf-8 -*-
-# @Time    : 2020/8/4 22:38
-# @Author  : Raymound luo
-# @Mail    : luolinhao1998@gmail.com
-# @File    : config.py
-# @Software: PyCharm
-# @Describe:
-
 import os
 
 config_path = os.path.dirname(__file__)
