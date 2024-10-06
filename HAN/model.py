@@ -1,11 +1,4 @@
-"""This model shows an example of using dgl.metapath_reachable_graph on the original heterogeneous
-graph.
 
-Because the original HAN implementation only gives the preprocessed homogeneous graph, this model
-could not reproduce the result in HAN as they did not provide the preprocessing code, and we
-constructed another dataset from ACM with a different set of papers, connections, features and
-labels.
-"""
 
 import torch
 import torch.nn as nn
@@ -65,7 +58,7 @@ class HANLayer(nn.Module):
                                            dropout, dropout, activation=F.elu,
                                            allow_zero_in_degree=True))
         self.semantic_attention = SemanticAttention(in_size=out_size * layer_num_heads)
-        self.meta_paths = list(tuple(meta_path) for meta_path in meta_paths)  # 将meta-path转换成元组形式
+        self.meta_paths = list(tuple(meta_path) for meta_path in meta_paths) 
 
         self._cached_graph = None
         self._cached_coalesced_graph = {}
@@ -73,19 +66,18 @@ class HANLayer(nn.Module):
     def forward(self, g, h):
         semantic_embeddings = []
 
-        if self._cached_graph is None or self._cached_graph is not g:  # 第一次，建立一张metapath下的异构图
+        if self._cached_graph is None or self._cached_graph is not g: 
             self._cached_graph = g
             self._cached_coalesced_graph.clear()
             for meta_path in self.meta_paths:
                 self._cached_coalesced_graph[meta_path] = dgl.metapath_reachable_graph(
-                        g, meta_path)  # 构建异构图的邻居;
-        # self._cached_coalesced_graph 多个metapath下的异构图
+                        g, meta_path) 
         for i, meta_path in enumerate(self.meta_paths):
-            new_g = self._cached_coalesced_graph[meta_path]  # meta-path下的节点邻居图
-            semantic_embeddings.append(self.gat_layers[i](new_g, h).flatten(1))   # 图attention
-        semantic_embeddings = torch.stack(semantic_embeddings, dim=1)                  # (N, M, D * K)
+            new_g = self._cached_coalesced_graph[meta_path] 
+            semantic_embeddings.append(self.gat_layers[i](new_g, h).flatten(1)) 
+        semantic_embeddings = torch.stack(semantic_embeddings, dim=1) 
 
-        return self.semantic_attention(semantic_embeddings)                            # (N, D * K)
+        return self.semantic_attention(semantic_embeddings) 
 
 class HAN(nn.Module):
     def __init__(self, meta_paths, in_size, hidden_size, out_size, num_heads, dropout):
