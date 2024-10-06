@@ -161,7 +161,6 @@ class ActionNet(nn.Module):
 
 
     def forward(self, state, selected_type, is_inference=False):
-        # print('2222222222222222222')
         target_node, graph_info = state
         with torch.set_grad_enabled(mode=not is_inference):
             graph = graph_info.get_modified_heterograph(self.node_features.device)
@@ -185,7 +184,7 @@ class ActionNet(nn.Module):
             embed_s_a = torch.cat((node_embed, graph_embed), dim=1)
 
             if self.mlp_hidden:
-                embed_s_a = F.relu(self.linear_1(embed_s_a))  # 将所有经过两个linear layer 获得最后的预测值
+                embed_s_a = F.relu(self.linear_1(embed_s_a))  
             raw_pred = self.linear_out(embed_s_a)
             raw_pred = torch.mm(raw_pred, target_embed)
             action_probability = F.softmax(raw_pred.view(-1), dim=0)
@@ -250,7 +249,6 @@ def _param_init(m):
     if isinstance(m, Parameter):
         glorot_uniform(m.data)
     elif isinstance(m, nn.Linear):
-        # 检查偏置是否存在
         if m.bias is not None:
             m.bias.data.zero_()
         glorot_uniform(m.weight.data)
