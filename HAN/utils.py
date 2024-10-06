@@ -239,75 +239,11 @@ def load_acm(remove_self_loop):
     return gs, features, labels, num_classes, train_idx, val_idx, test_idx, \
            train_mask, val_mask, test_mask
 
-# def load_acm_raw(remove_self_loop):
-    # assert not remove_self_loop
-    # url = 'dataset/ACM.mat'
-    # data_path = get_download_dir() + '/ACM.mat'
-    # download(_get_dgl_url(url), path=data_path)
-
-    # data = sio.loadmat(data_path)
-    # p_vs_l = data['PvsL']       # paper-field?
-    # p_vs_a = data['PvsA']       # paper-author
-    # p_vs_t = data['PvsT']       # paper-term, bag of words
-    # p_vs_c = data['PvsC']       # paper-conference, labels come from that
-
-    # # We assign
-    # # (1) KDD papers as class 0 (data mining),
-    # # (2) SIGMOD and VLDB papers as class 1 (database),
-    # # (3) SIGCOMM and MOBICOMM papers as class 2 (communication)
-    # conf_ids = [0, 1, 9, 10, 13]
-    # label_ids = [0, 1, 2, 2, 1]
-
-    # p_vs_c_filter = p_vs_c[:, conf_ids]
-    # p_selected = (p_vs_c_filter.sum(1) != 0).A1.nonzero()[0]
-    # p_vs_l = p_vs_l[p_selected]
-    # p_vs_a = p_vs_a[p_selected]
-    # p_vs_t = p_vs_t[p_selected]
-    # p_vs_c = p_vs_c[p_selected]
-
-    # hg = dgl.heterograph({
-        # ('paper', 'pa', 'author'): p_vs_a.nonzero(),
-        # ('author', 'ap', 'paper'): p_vs_a.transpose().nonzero(),
-        # ('paper', 'pf', 'field'): p_vs_l.nonzero(),
-        # ('field', 'fp', 'paper'): p_vs_l.transpose().nonzero()
-    # })
-
-    # features = torch.FloatTensor(p_vs_t.toarray())
-
-    # pc_p, pc_c = p_vs_c.nonzero()
-    # labels = np.zeros(len(p_selected), dtype=np.int64)
-    # for conf_id, label_id in zip(conf_ids, label_ids):
-        # labels[pc_p[pc_c == conf_id]] = label_id
-    # labels = torch.LongTensor(labels)
-
-    # num_classes = 3
-
-    # float_mask = np.zeros(len(pc_p))
-    # for conf_id in conf_ids:
-        # pc_c_mask = (pc_c == conf_id)
-        # float_mask[pc_c_mask] = np.random.permutation(np.linspace(0, 1, pc_c_mask.sum()))
-    # train_idx = np.where(float_mask <= 0.2)[0]
-    # val_idx = np.where((float_mask > 0.2) & (float_mask <= 0.3))[0]
-    # test_idx = np.where(float_mask > 0.3)[0]
-
-    # num_nodes = hg.number_of_nodes('paper')
-    # train_mask = get_binary_mask(num_nodes, train_idx)
-    # val_mask = get_binary_mask(num_nodes, val_idx)
-    # test_mask = get_binary_mask(num_nodes, test_idx)
-
-    # return hg, features, labels, num_classes, train_idx, val_idx, test_idx, \
-            # train_mask, val_mask, test_mask
-
 
 def load_acm_raw(remove_self_loop): #These code is from dgl, but in the package, The training set is reversed from the test set
     assert not remove_self_loop
     set_random_seed(1)
     url = 'dataset/ACM.mat'
-    #data_path = get_download_dir() + '/ACM.mat'
-    #-------------------------server code-------------------------
-    data_path = os.getcwd() + '/data/ACM/ACM.mat'
-    #-------------------------server code-------------------------
-    # 获得不同的metapath PF PA PT PC
     data = sio.loadmat(data_path)
     p_vs_f = data['PvsL']
     p_vs_a = data['PvsA']
@@ -400,7 +336,6 @@ def load_imdb_raw():
     m_vs_k_edges = scipy_to_edge_list(m_vs_k)
     k_vs_m_edges = scipy_to_edge_list(m_vs_k.transpose())
 
-    # 构建异构图
     hg = dgl.heterograph({
         ('m', 'ma', 'a'): m_vs_a_edges,
         ('a', 'am', 'm'): a_vs_m_edges,
@@ -503,15 +438,15 @@ def load_dblp_raw(remove_self_loop):
                  'pt':p_vs_t, 'tp':p_vs_t.T}
 
     hg = dgl.heterograph({
-        ('paper', 'pa', 'author'): p_vs_a.nonzero(),   # paper-author构成边，关系='pa'
+        ('paper', 'pa', 'author'): p_vs_a.nonzero(),
         ('author', 'ap', 'paper'): p_vs_a.transpose().nonzero(),
         ('paper', 'pt', 'term'): p_vs_t.nonzero(),
         ('term', 'tp', 'paper'): p_vs_t.transpose().nonzero()
     })
     features = torch.FloatTensor(p_vs_t.toarray())
-    pc_p, pc_c = p_vs_c.nonzero() #返回非0的行和列的索引
+    pc_p, pc_c = p_vs_c.nonzero()
     labels = np.zeros(len(p_selected), dtype=np.int64)
-    for conf_id, label_id in zip(conf_ids, label_ids):  # 将label转换成
+    for conf_id, label_id in zip(conf_ids, label_ids): 
         labels[pc_p[pc_c == conf_id]] = label_id
     counts = np.bincount(labels)
     print(counts)
@@ -528,8 +463,8 @@ def load_dblp_raw(remove_self_loop):
     val_idx = np.where(float_mask < 0.1)[0]
 
 
-    num_nodes = hg.number_of_nodes('paper')   # 节点数量
-    train_mask = get_binary_mask(num_nodes, train_idx)  # 对训练集mask
+    num_nodes = hg.number_of_nodes('paper') 
+    train_mask = get_binary_mask(num_nodes, train_idx)
     val_mask = get_binary_mask(num_nodes, val_idx)
     test_mask = get_binary_mask(num_nodes, test_idx)
 
@@ -564,62 +499,6 @@ def edge_index_to_csc(edge_index: torch.Tensor, num_src_nodes: int = None, num_d
         num_dst_nodes = edge_index[1, :].max().item() + 1
 
     return csc_matrix((torch.ones(edge_index.shape[1], dtype=int), edge_index), shape=(num_src_nodes, num_dst_nodes))
-
-# def load_dblp_raw(remove_self_loop):
-#     assert not remove_self_loop
-#     dataset = DBLP(root='/tmp/DBLP')
-#     data = dataset[0]
-#     p_vs_a = data['paper', 'to', 'author'].edge_index
-#     p_vs_t = data['paper', 'to', 'term'].edge_index
-#     p_vs_c = data['paper', 'to', 'conference'].edge_index
-#     p_vs_a = edge_index_to_csc(p_vs_a)
-#     p_vs_t = edge_index_to_csc(p_vs_t)
-#     p_vs_c = edge_index_to_csc(p_vs_c)
-#
-#
-#     conf_ids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-#     label_ids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-#
-#     p_vs_c_filter = p_vs_c[:, conf_ids]
-#     p_selected = (p_vs_c_filter.sum(1) != 0).A1.nonzero()[0]
-#     p_vs_a = p_vs_a[p_selected]
-#     p_vs_t = p_vs_t[p_selected]
-#     p_vs_c = p_vs_c[p_selected]
-#     hete_adjs = {'pa':p_vs_a, 'ap':p_vs_a.T,\
-#                  'pc':p_vs_c, 'cp':p_vs_c.T,\
-#                  'pt':p_vs_t, 'tp':p_vs_t.T}
-#
-#     hg = dgl.heterograph({
-#         ('paper', 'pa', 'author'): p_vs_a.nonzero(),   # paper-author构成边，关系='pa'
-#         ('author', 'ap', 'paper'): p_vs_a.transpose().nonzero(),
-#         ('paper', 'pt', 'term'): p_vs_t.nonzero(),
-#         ('term', 'tp', 'paper'): p_vs_t.transpose().nonzero(),
-#         ('paper', 'pc', 'conference'): p_vs_c.nonzero(),
-#         ('conference', 'cp', 'paper'): p_vs_c.transpose().nonzero(),
-#     })
-#     features = torch.FloatTensor(p_vs_t.toarray())
-#     pc_p, pc_c = p_vs_c.nonzero() #返回非0的行和列的索引
-#     labels = np.zeros(len(p_selected), dtype=np.int64)
-#     for conf_id, label_id in zip(conf_ids, label_ids):  # 将label转换成
-#         labels[pc_p[pc_c == conf_id]] = label_id
-#     labels = torch.LongTensor(labels)
-#
-#     num_classes = len(label_ids)
-#     float_mask = np.zeros(len(pc_p))
-#     for conf_id in conf_ids:  # 对每个类别生层[0,1]之间等距的值; 目的是对每个类别按比例去train，val，test
-#         pc_c_mask = (pc_c == conf_id)
-#         float_mask[pc_c_mask] = np.random.permutation(np.linspace(0, 1, pc_c_mask.sum()))  # 每个节点对应的类别生成随机数，train，val使用
-#     train_idx = np.where(float_mask <= 0.2)[0]
-#     val_idx = np.where((float_mask > 0.2) & (float_mask <= 0.3))[0]
-#     test_idx = np.where(float_mask > 0.3)[0]
-#
-#     num_nodes = hg.number_of_nodes('paper')   # 节点数量
-#     train_mask = get_binary_mask(num_nodes, train_idx)  # 对训练集mask
-#     val_mask = get_binary_mask(num_nodes, val_idx)
-#     test_mask = get_binary_mask(num_nodes, test_idx)
-#
-#     return hg, hete_adjs, features, labels, num_classes, train_idx, val_idx, test_idx, \
-#             train_mask, val_mask, test_mask
 
 
 def load_data(dataset, remove_self_loop=False):
