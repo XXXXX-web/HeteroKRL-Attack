@@ -36,9 +36,9 @@ parser.add_argument("--use_knn", help = "Weather use knn in test", default = Fal
 
 args = parser.parse_args()
 
-dataset = args.dataset #选择数据集
-seed = args.random_seed #设置随机种子
-target_model = args.target_model_location #已经训练好的目标模型的位置
+dataset = args.dataset 
+seed = args.random_seed 
+target_model = args.target_model_location
 budget = args.budget
 k_value = args.k_value
 print("budget is ",budget)
@@ -46,7 +46,7 @@ print("budget is ",budget)
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
-torch.cuda.manual_seed(seed) #设置随机种子
+torch.cuda.manual_seed(seed) 
 
 def load_dataset(dataset_name):
     if dataset_name == "acm":
@@ -78,11 +78,11 @@ def init_setup():
     all_features = embeddings_to_tensor(embeddings)
 
     StaticGraph.homoGraph = nx_graph
-    StaticGraph.heteroGraph = hg #将转换好的同构图与为转换前的异构图都保存下来
+    StaticGraph.heteroGraph = hg 
     StaticGraph.metapaths = metapaths
     StaticGraph.node_mapping = node_mapping
     StaticGraph.reversed_node_mapping = {value: key for key, value in node_mapping.items()}
-    StaticGraph.embeddings = embeddings #将embedding也保存下来 上面也是对信息进行保存
+    StaticGraph.embeddings = embeddings 
     StaticGraph.target_type = target_type
     StaticGraph.node_node_etype_mapping()
 
@@ -101,17 +101,17 @@ def init_setup():
 
     return hg, classification_features, labels, all_features, train_idx, val_idx, test_idx, dict_of_lists, victim_model, node_mapping, device
 
-def generate_attack_list(victim_model, hg, features,  labels, train_idx, idx_val, idx_test,dict_of_lists): #metalist 中应该装trian attack_list 中应该装idx_test
+def generate_attack_list(victim_model, hg, features,  labels, train_idx, idx_val, idx_test,dict_of_lists): 
     with torch.no_grad():
-        output = victim_model(hg, features) #获得所有paper节点的预测结果 其中output的尺寸为4025*3
-    preds = output.max(1)[1].type_as(labels) # 活儿都预测的结果
-    acc = preds.eq(labels).double() # 计算准确率
-    acc_test = acc[train_idx] #获得测试集的准确率
+        output = victim_model(hg, features) 
+    preds = output.max(1)[1].type_as(labels) 
+    acc = preds.eq(labels).double() 
+    acc_test = acc[train_idx] 
 
     attack_list = []
     for i in range(len(train_idx)):
         # only attack those misclassifed and degree>0 nodes
-        if acc_test[i] > 0 and len(dict_of_lists[train_idx[i]]): #当这个点不是孤点的时候以及这个点预测正确的时候  我们将其加入attack list
+        if acc_test[i] > 0 and len(dict_of_lists[train_idx[i]]): 
             attack_list.append(train_idx[i])
 
     total = range(features.shape[0])
@@ -123,7 +123,7 @@ def generate_attack_list(victim_model, hg, features,  labels, train_idx, idx_val
     wrong_lables = []
     wrong_logits = []
     num_wrong = 0
-    for i in tar_idx: # metalist 做了同样的事 将错误的节点拿出来
+    for i in tar_idx: 
         if acc[i] > 0:
             if len(dict_of_lists[i]):
                 meta_list.append(i)
@@ -131,7 +131,7 @@ def generate_attack_list(victim_model, hg, features,  labels, train_idx, idx_val
             num_wrong += 1
             wrong_lables.append(labels[i])
             wrong_logits.append(output[i])
-    print( 'meta list ratio:', len(meta_list) / float(len(tar_idx))) #idx meta 是用于做valditation的
+    print( 'meta list ratio:', len(meta_list) / float(len(tar_idx))) 
 
     preprocessed_eval_idx = idx_test
     wrong_eval_labels = []
