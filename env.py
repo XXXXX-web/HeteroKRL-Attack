@@ -216,7 +216,7 @@ class NodeAttackEnv(object):
                 reward = loss[cur_idx]
                 if reward > 0:
                     reward = -reward
-                self.rewards = reward  # reward 的方法可能要更改
+                self.rewards = reward 
                 if self.n_steps == self.num_mod * 2:
                     self.dones = True
                 else:
