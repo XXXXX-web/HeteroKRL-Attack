@@ -75,7 +75,7 @@ def get_whole_node_mapping(nx_graph, dimension, dataset, read = 1):
     if read == 0:
         node2vec = Node2Vec(nx_graph, dimensions=dimension, walk_length=10, num_walks=10, workers=4)
         model = node2vec.fit(window=5, min_count=1, batch_words=4)
-        node_id = 0  # 示例节点
+        node_id = 0 
         embeddings = {int(node): model.wv[node] for node in model.wv.index_to_key}
         save_embeddings_to_file('homo_embeddings/homo_' + dataset + '_embedding_' + str(dimension) + '.pkl', embeddings)
     else:
@@ -98,11 +98,11 @@ def embeddings_to_tensor(embeddings):
 def find_two_hop_neighbors(G,reversed_node_mapping,target_type):
     two_hop_neighbors = {}
     for node in G.nodes():
-        one_hop = set(G.neighbors(node))  # 第一跳邻居
+        one_hop = set(G.neighbors(node)) 
         two_hop = set()
         for neighbor in one_hop:
-            two_hop |= set(G.neighbors(neighbor))  # 添加第二跳邻居
-        two_hop.discard(node)  # 移除节点本身
+            two_hop |= set(G.neighbors(neighbor)) 
+        two_hop.discard(node)
         two_hop_copy = copy.deepcopy(two_hop)
         for n in two_hop:
             if reversed_node_mapping[n][0] == target_type:
@@ -113,26 +113,17 @@ def find_two_hop_neighbors(G,reversed_node_mapping,target_type):
 def find_all_papers_three_hop_neighbors(graph,reversed_node_mapping, target_type):
     combined_neighbors = {}
     for node in tqdm(graph.nodes()):
-        # 找到一跳邻居
         one_hop = set(graph.neighbors(node))
-
-        # 找到二跳邻居
         two_hop = set()
         for neighbor in one_hop:
             two_hop |= set(graph.neighbors(neighbor))
 
-        # 移除自身，以避免将节点自己计入邻居
         two_hop.discard(node)
-
-        # 找到三跳邻居
         three_hop = set()
         for neighbor in two_hop:
             three_hop |= set(graph.neighbors(neighbor))
 
-        # 同样移除自身
         three_hop.discard(node)
-
-        # 合并一跳、二跳、和三跳邻居
         all_hops = one_hop | two_hop | three_hop
         all_hops_copy = copy.deepcopy(all_hops)
         for n in all_hops:
@@ -148,9 +139,7 @@ def get_all_nodes(graph,reversed_node_mapping,target_type):
     all_nodes = [n for n in all_nodes if reversed_node_mapping[n][0] != target_type]
     neighbors = {}
     for n in graph.nodes():
-        # 复制一份所有节点的集合，然后从中移除当前节点
         neighbors_set = all_nodes.copy()
-        # 将结果转换为列表
         neighbors[n] = list(neighbors_set)
     return neighbors
 
@@ -169,7 +158,7 @@ def get_action_space_on_hete(hg, reversed_node_mapping, target_type):
 
 
 def preprocess(g, hg, features, labels, all_features, device, reversed_node_mapping, target_type):
-    # dict = find_two_hop_neighbors(g) # 返回其邻居节点的字典 其中g是一个networkx的图 返回的字典是每个节点的邻居节点
+    # dict = find_two_hop_neighbors(g) 
     #dict = get_all_nodes(g,reversed_node_mapping,target_type)
     dict = get_action_space_on_hete(hg, reversed_node_mapping,target_type)
     return hg.to(device),features.to(device),labels.to(device),all_features.to(device),dict
@@ -192,27 +181,18 @@ def deep_copy_by_pickle(obj):
 
 
 def find_k_nearest_nodes_pyflann(embeddings, action, action_space,chosen_metapath, node_mapping,reversed_node_mapping, k=5):
-    # 首先从action_space中过滤出节点
     action_space_nodes = [node_mapping[(chosen_metapath,node)] for node in action_space[1][chosen_metapath] ]
-    # 构建这些节点的嵌入矩阵
     action_space_embedding_matrix = np.array([embeddings[node] for node in action_space_nodes])
 
     k = math.ceil(k * len(action_space_nodes))
     if k > len(action_space_nodes):
         k = len(action_space_nodes)
-
-    # #++++debug info++++++
-    # k = 1
-    # # ++++debug info++++++
-
     action = node_mapping[(chosen_metapath,action)]
-    # 使用pyflann进行KNN
     flann = FLANN()
     params = flann.build_index(action_space_embedding_matrix, algorithm="kdtree", trees=4)
     query_embedding = np.array(embeddings[action]).reshape(1, -1)
     indices, _ = flann.nn_index(query_embedding, num_neighbors=k)
 
-    # 获取最近邻节点的ID
     if indices.ndim == 2:
         nearest_nodes = [action_space_nodes[i] for i in indices[0]]
     else:
@@ -223,14 +203,11 @@ def find_k_nearest_nodes_pyflann(embeddings, action, action_space,chosen_metapat
     return nearest_nodes
 
 def find_max_value_and_index(loss_list, acc_list):
-    # 检查acc_list中是否有值为0的索引
     acc_0_indices = [i for i, x in enumerate(acc_list) if x == 0]
 
-    # 如果acc_list中存在值为0的元素，则返回第一个0值的索引
     if acc_0_indices:
         return acc_0_indices[0]
     else:
-        # 如果acc_list中所有值都为1，则在loss_list中找到最大值及其索引
         max_value = max(loss_list)
         max_index = loss_list.index(max_value)
         return max_index
