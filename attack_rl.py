@@ -22,7 +22,7 @@ parser.add_argument("--target_model_location", help = "", default= "save_model/m
 parser.add_argument("--budget", help = "num_mods of budget", type = int, default = 3)
 parser.add_argument("--phase", help = "train or test", default = "test")
 parser.add_argument("--num_steps", help = "rl training steps", default = 500000)
-parser.add_argument("--save_dir", help = "save folder", default = "E:\\Study\\Complex System\\HANAttack\\save_model")
+parser.add_argument("--save_dir", help = "save folder", default = "")
 parser.add_argument("--bilin_q", help = "bilinear q or not", default = 1)
 parser.add_argument("--latent_dim", help = "dimension of latent layers", default = 64,type = int)
 parser.add_argument("--num_heads", help = "number of head of HAN", default = 1,type = int)
